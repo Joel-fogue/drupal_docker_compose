@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  maria_service:
+    build: ./db_maria
+    restart: always
+    environment:
+      MYSQL_DATABASE: mariadb
+      MYSQL_USER: joel
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - ./db_maria:/var/lib/mysql
+
+  drupal_service:
+    build: ./website
+    restart: always
+    ports:
+      - 8080:80
+    volumes:
+      - /var/www/html/modules
+      - /var/www/html/profiles
+      - /var/www/html/themes
+      # this takes advantage of the feature in Docker that a new anonymous
+      # volume (which is what we're creating here) will be initialized with the
+      # existing content of the image at the same location
+      - /var/www/html/sites
+    environment:
+      DB_HOST: maria_service
+      DB_USER: joel
+      DB_PASSWORD: password
+      DB_NAME: mariadb
+      DB_DRIVER: mysql
+    depends_on:
+      - maria_service
